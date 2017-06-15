@@ -15,14 +15,54 @@ def cost(theta, X, y):
     second = np.multiply((1-y), np.log(1 - sigmoid((X * theta.T))))
     return np.sum(first - second) / (len(X))
 
+def gradient(theta, X, y):
+    theta = np.matrix(theta)
+    X = np.matrix(X)
+    y = np.matrix(y)
+    parameters = int(theta.ravel().shape[1])
+    grad = np.zeros(parameters)
+
+    error = sigmoid(X * theta.T) - y
+
+    for i in range(parameters):
+        term = np.multiply(error, X[:, i])
+        grad[i] = np.sum(term) / len(X)
+
+    return grad
+
+def predict(theta, X):
+    probability = sigmoid(X * theta.T)
+    return [1 if x >= 0.5 else 0 for x in probability]
+
 path = os.getcwd() + '/data/ex2data1.txt'
 data = pd.read_csv(path, header=None, names=["Exam 1", 'Exam 2', 'Admitted'])
 
 positive = data[data['Admitted'].isin([1])]
 negative = data[data['Admitted'].isin([0])]
 
-print(positive)
-print(negative)
+#add ones column - the ones pertain to the intercept variable
+data.insert(0, 'Ones', 1)
+
+#set X(training data) and y (target variable)
+cols = data.shape[1]
+X = data.iloc[:, 0 : cols - 1]
+y = data.iloc[:, cols - 1: cols]
+
+
+#convert to numpy arrays and initialize the parameter array theta
+X = np.array(X.values)             #100 x 3
+y = np.array(y.values)              # 100 x 1
+theta = np.zeros(3)                  # 1 x 3 [0,0,0]
+
+import scipy.optimize as opt        # fminunc in matlab
+result = opt.fmin_tnc(func=cost, x0 = theta, fprime = gradient, args = (X,y))
+print(cost(result[0], X, y))
+
+theta_min = np.matrix(result[0])
+predictions = predict(theta_min, X)
+correct = [1 if ((a == 1 and b ==1) or (a == 0 and b == 0)) else 0 for (a,b) in zip(predictions, y)]
+accuracy = ((sum(map(int, correct)) / len(correct))) * 100
+print ('accuracy = {0}%'.format(accuracy))
 
 fig, ax = plt.subplots(figsize=(12,8))
 ax.scatter(positive['Exam 1'], positive['Exam 2'], s=50, c='b', marker='o', label='Admitted')
