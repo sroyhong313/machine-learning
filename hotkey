@@ -1,0 +1,12 @@
+hotkeys
+
+Windows + D   ---> Desktop
+Windows +  Tab ---> Multiple Screen View
+Window + Ctrl +  D ---> New Virtual Desktop and switch to it (much like OS X)
+Window + Ctrl + Lf / Rt ----> Switch to virtual desktop on left/right
+Alt + Tab ---> Switch between open windows (and task views)
+Window + Lft/rt/dwn/up ---> Move window to specified part of screen
+
+
+Reference :
+https://www.howtogeek.com/198122/32-new-keyboard-shortcuts-in-the-windows-10-technical-preview/

@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.optimize import minimize
-import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
+import pandas as pd
 
 def sigmoid(z):
     return 1 / np.exp(-z)
@@ -46,7 +46,7 @@ def one_vs_all(X, y, num_labels, learning_rate):
     params = X.shape[1]
 
     #k X (n + 1) array for the parameters of each of the k Classifiers
-    all_theta = np.zeros((num_labels, params + 1))
+    all_theta = np.zeros((num_labels, params _+ 1))
 
     #insert a column of ones at the beginning for the intercept term
     X = np.insert(X, 0, values = np.ones(rows), axis = 1)
@@ -63,8 +63,53 @@ def one_vs_all(X, y, num_labels, learning_rate):
                         method = 'TNC', jac=gradient_no_loop)
         all_theta[i - 1, :] = fmin.x
 
+    return all_theta
+"""
+    compute the class probability for each class, for each training instance
+    and assign the output class label as the class with the highest probability
+"""
+def predict_all(X, all_theta):
+    rows = X.shape[0]
+    params = X.shape[1]
+    num_labels = all_theta.shape[0]
 
-#begin data reading
+    # insert ones to match shape
+    X = np.insert(X, 0, values=np.ones(rows), axis=1)
+
+    # convert to matrices
+    X = np.matrix(X)
+    all_theta = np.matrix(all_theta)
+
+    # compute class probability for each class on each training instance
+    h = sigmoid(X * all_theta.T)
+
+    # create array of the index with the maximum probability
+    h_argmax = np.argmax(h, axis = 1)
+
+    #because our array was zero-indexed we need to add one for the true label prediction
+    h_argmax = h_argmax + 1
+
+    return h_argmax
+
+
 data = loadmat('data/ex3data1.mat')
-print(data['X'].shape)
-print(data['y'].shape)
+rows = data['X'].shape[0]
+params = data['X'].shape[1]
+
+all_theta = np.zeros((10, params + 1))
+X = np.insert(data['X'], 0, values = np.ones(rows), axis = 1)
+
+theta = np.zeros(params + 1)
+
+y_0 = np.array([1 if label == 0 else 0 for label in data['y']])
+y_0 = np.reshape(y_0, (rows, 1))
+
+print(X.shape, y_0.shape, theta.shape, all_theta.shape)
+
+np.unique(data['y'])
+all_theta = one_vs_all(data['X'], data['y'], 10, 1)
+
+y_pred = predict_all(data['X'], all_theta)
+correct = [1 if a == b else 0 for (a,b) in zip(y_pred, data['y'])]
+accuracy = (sum(map(int, correct)) / float(len(correct)))
+print 'accuracy = {0}%'.format(accuracy * 100)
