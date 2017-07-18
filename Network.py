@@ -17,7 +17,7 @@ import numpy as np
 
 #### Miscellaneous functions
 def sigmoid(z):
-    #numpy applies function sigmoid elementwise automatically (in vectorized form)
+    '''numpy applies function sigmoid elementwise automatically (in vectorized form)'''
     return 1.0 / (1.0 + np.exp(-z))
 
 def sigmoid_prime(z):
@@ -53,7 +53,6 @@ class Network(object):
     def SGD(self, training_data, epochs, mini_batch_size, alpha, test_data=None):
         """Train the neural network using mini-batch stochastic gradient descent.
         The ``training_data`` is a list of tuples ``(x, y)`` representing the training
-        inputs and the desired outputs.  The other non-optional parameters are self-explanatory.
         If ``test_data`` is provided then the network will be evaluated against the
         test data after each epoch, and partial progress printed out.  This is useful for
         tracking progress, but slows things down substantially."""
@@ -65,6 +64,7 @@ class Network(object):
             n_test = len(test_data)
 
         for j in range(epochs):
+            # range(4, 10, 2) --> 4, 6, 8
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k: k + mini_batch_size]
@@ -111,9 +111,11 @@ class Network(object):
             activation = sigmoid(z)
             activations.append(activation)
         #backward pass
-        delta = self.cost_derivative(activations[-1], y) * \
-                sigmoid_prime(zs[-1])
+        # line below calculates output error
+        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        # partial derivative of cost wrt bias = output error
         nabla_b[-1] = delta
+        # partial derivative of cost wrt weight = activation of layer l - 1 * output error
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
@@ -122,10 +124,12 @@ class Network(object):
         # scheme in the book, used here to take advantage of the fact
         # that Python can use negative indices in lists.
         for l in range(2, self.num_layers):
-            z = zs[-1]
+            z = zs[-l]
             sp = sigmoid_prime(z)
-            delta = np.dot(delta, activations[-l-1].transpose())
-        return (nabla_b, nabla_w)
+            delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
+            nabla_b[-l] = delta
+            nabla_w[-l] = np.dot(delta, activations[-l - 1].transpose())
+            return (nabla_b, nabla_w)
 
     def evaluate(self, test_data):
         """ Return the number of test inputs for which the neural network
